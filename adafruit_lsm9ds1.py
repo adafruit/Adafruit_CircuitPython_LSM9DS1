@@ -149,24 +149,24 @@ class LSM9DS1:
           - ACCELRANGE_8G
           - ACCELRANGE_16G
         """
-        reg = self._read_u8(_XGTYPE, LSM9DS1_REGISTER_CTRL_REG6_XL)
+        reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG6_XL)
         return (reg & 0b00011000) & 0xFF
 
     @accel_range.setter
     def accel_range(self, val):
         assert val in (ACCELRANGE_2G, ACCELRANGE_4G, ACCELRANGE_8G,
                        ACCELRANGE_16G)
-        reg = self._read_u8(_XGTYPE, LSM9DS1_REGISTER_CTRL_REG6_XL)
+        reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG6_XL)
         reg = (reg & ~(0b00011000)) & 0xFF
         reg |= val
         self._write_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG6_XL, reg)
-        if val == _LSM9DS1_ACCELRANGE_2G:
+        if val == ACCELRANGE_2G:
             self._accel_mg_lsb = _LSM9DS1_ACCEL_MG_LSB_2G
-        elif val == _LSM9DS1_ACCELRANGE_4G:
+        elif val == ACCELRANGE_4G:
             self._accel_mg_lsb = _LSM9DS1_ACCEL_MG_LSB_4G
-        elif val == _LSM9DS1_ACCELRANGE_8G:
+        elif val == ACCELRANGE_8G:
             self._accel_mg_lsb = _LSM9DS1_ACCEL_MG_LSB_8G
-        elif val == _LSM9DS1_ACCELRANGE_16G:
+        elif val == ACCELRANGE_16G:
             self._accel_mg_lsb = _LSM9DS1_ACCEL_MG_LSB_16G
 
     @property
@@ -188,13 +188,13 @@ class LSM9DS1:
         reg = (reg & ~(0b01100000)) & 0xFF
         reg |= val
         self._write_u8(_MAGTYPE, _LSM9DS1_REGISTER_CTRL_REG2_M, reg)
-        if val == _LSM9DS1_MAGGAIN_4GAUSS:
+        if val == MAGGAIN_4GAUSS:
             self._mag_mgauss_lsb = _LSM9DS1_MAG_MGAUSS_4GAUSS
-        elif val == _LSM9DS1_MAGGAIN_8GAUSS:
+        elif val == MAGGAIN_8GAUSS:
             self._mag_mgauss_lsb = _LSM9DS1_MAG_MGAUSS_8GAUSS
-        elif val == _LSM9DS1_MAGGAIN_12GAUSS:
+        elif val == MAGGAIN_12GAUSS:
             self._mag_mgauss_lsb = _LSM9DS1_MAG_MGAUSS_12GAUSS
-        elif val == _LSM9DS1_MAGGAIN_16GAUSS:
+        elif val == MAGGAIN_16GAUSS:
             self._mag_mgauss_lsb = _LSM9DS1_MAG_MGAUSS_16GAUSS
 
     @property
@@ -214,11 +214,11 @@ class LSM9DS1:
         reg = (reg & ~(0b00110000)) & 0xFF
         reg |= val
         self._write_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG1_G, reg)
-        if val == _LSM9DS1_GYROSCALE_245DPS:
+        if val == GYROSCALE_245DPS:
             self._gyro_dps_digit = _LSM9DS1_GYRO_DPS_DIGIT_245DPS
-        elif val == _LSM9DS1_GYROSCALE_500DPS:
+        elif val == GYROSCALE_500DPS:
             self._gyro_dps_digit = _LSM9DS1_GYRO_DPS_DIGIT_500DPS
-        elif val == _LSM9DS1_GYROSCALE_2000DPS:
+        elif val == GYROSCALE_2000DPS:
             self._gyro_dps_digit = _LSM9DS1_GYRO_DPS_DIGIT_2000DPS
 
     def read_accel_raw(self):
@@ -228,7 +228,7 @@ class LSM9DS1:
         accelerometer property!
         """
         # Read the accelerometer
-        self._read_bytes(_XGTYPE, 0x80 | LSM9DS1_REGISTER_OUT_X_L_XL, 6,
+        self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_XL, 6,
                          self._BUFFER)
         xlo = self._BUFFER[0];
         xhi = self._BUFFER[1];
@@ -315,7 +315,7 @@ class LSM9DS1:
         want to use the temperature property!
         """
         # Read temp sensor
-        self._read_bytes(_XGTYPE, 0x80 | LSM9DS1_REGISTER_TEMP_OUT_L, 2,
+        self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_TEMP_OUT_L, 2,
                          self._BUFFER)
         temp = (self._BUFFER[1] << 8) | self._BUFFER[0]
         return temp
@@ -362,10 +362,10 @@ class LSM9DS1_I2C(LSM9DS1):
             device = self._mag_device
         else:
             device = self._xg_device
-        with device:
+        with device as i2c:
             self._BUFFER[0] = address & 0xFF
-            device.write(self._BUFFER, end=1)
-            device.readinto(self._BUFFER, end=1)
+            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.readinto(self._BUFFER, end=1)
         return self._BUFFER[0]
 
     def _read_bytes(self, sensor_type, address, count, buffer):
@@ -373,20 +373,20 @@ class LSM9DS1_I2C(LSM9DS1):
             device = self._mag_device
         else:
             device = self._xg_device
-        with device:
+        with device as i2c:
             self._BUFFER[0] = address & 0xFF
-            device.write(self._BUFFER, end=1)
-            device.readinto(self._BUFFER, end=count)
+            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.readinto(self._BUFFER, end=count)
 
     def _write_u8(self, sensor_type, address, val):
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
             device = self._xg_device
-        with device:
+        with device as i2c:
             self._BUFFER[0] = address & 0xFF
             self._BUFFER[1] = val & 0xFF
-            device.write(self._BUFFER, end=2)
+            i2c.write(self._BUFFER, end=2)
 
 
 class LSM9DS1_SPI(LSM9DS1):
@@ -401,11 +401,11 @@ class LSM9DS1_SPI(LSM9DS1):
             device = self._mag_device
         else:
             device = self._xg_device
-        with device:
-            device.configure(baudrate=200000, phase=0, polarity=0)
+        with device as spi:
+            spi.configure(baudrate=200000, phase=0, polarity=0)
             self._BUFFER[0] = (address | 0x80) & 0xFF
-            device.write(self._BUFFER, end=1)
-            device.readinto(self._BUFFER, end=1)
+            spi.write(self._BUFFER, end=1)
+            spi.readinto(self._BUFFER, end=1)
         return self._BUFFER[0]
 
     def _read_bytes(self, sensor_type, address, count, buffer):
@@ -413,19 +413,19 @@ class LSM9DS1_SPI(LSM9DS1):
             device = self._mag_device
         else:
             device = self._xg_device
-        with device:
-            device.configure(baudrate=200000, phase=0, polarity=0)
+        with device as spi:
+            spi.configure(baudrate=200000, phase=0, polarity=0)
             self._BUFFER[0] = (address | 0x80) & 0xFF
-            device.write(self._BUFFER, end=1)
-            device.readinto(self._BUFFER, end=count)
+            spi.write(self._BUFFER, end=1)
+            spi.readinto(self._BUFFER, end=count)
 
     def _write_u8(self, sensor_type, address, val):
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
             device = self._xg_device
-        with device:
-            device.configure(baudrate=200000, phase=0, polarity=0)
+        with device as spi:
+            spi.configure(baudrate=200000, phase=0, polarity=0)
             self._BUFFER[0] = (address & 0x7F) & 0xFF
             self._BUFFER[1] = val & 0xFF
-            device.write(self._BUFFER, end=2)
+            spi.write(self._BUFFER, end=2)
