@@ -309,8 +309,6 @@ class LSM9DS1:
                          self._BUFFER)
         temp = ((self._BUFFER[1] << 8) | self._BUFFER[0]) >> 4
         return _twos_comp(temp, 12)
-        #print('Raw temp: {0} 0x{0:04X}'.format(temp))
-        return temp
 
     @property
     def temperature(self):
