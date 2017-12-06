@@ -32,6 +32,7 @@ See examples/simpletest.py for a demo of the usage.
 * Author(s): Tony DiCola
 """
 import time
+import ustruct
 
 import adafruit_bus_device.i2c_device as i2c_device
 import adafruit_bus_device.spi_device as spi_device
@@ -111,6 +112,16 @@ MAGGAIN_16GAUSS              = (0b11 << 5)  # +/- 16 gauss
 GYROSCALE_245DPS             = (0b00 << 4)  # +/- 245 degrees/s rotation
 GYROSCALE_500DPS             = (0b01 << 4)  # +/- 500 degrees/s rotation
 GYROSCALE_2000DPS            = (0b11 << 4)  # +/- 2000 degrees/s rotation
+
+
+def _twos_comp(val, bits):
+    # Convert an unsigned integer in 2's compliment form of the specified bit
+    # length to its signed integer value and return it.
+    if val & (1 << (bits - 1)) != 0:
+        return val - (1 << bits)
+    else:
+        return val
+
 
 class LSM9DS1:
 
@@ -230,16 +241,9 @@ class LSM9DS1:
         # Read the accelerometer
         self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_XL, 6,
                          self._BUFFER)
-        xlo = self._BUFFER[0];
-        xhi = self._BUFFER[1];
-        ylo = self._BUFFER[2];
-        yhi = self._BUFFER[3];
-        zlo = self._BUFFER[4];
-        zhi = self._BUFFER[5];
-        # Shift values to create properly formed integer (low byte first)
-        raw_x = ((xhi << 8) | xlo) & 0xFFFF
-        raw_y = ((yhi << 8) | ylo) & 0xFFFF
-        raw_z = ((zhi << 8) | zlo) & 0xFFFF
+        raw_x = ustruct.unpack_from('<h', self._BUFFER[0:2])[0]
+        raw_y = ustruct.unpack_from('<h', self._BUFFER[2:4])[0]
+        raw_z = ustruct.unpack_from('<h', self._BUFFER[4:6])[0]
         return (raw_x, raw_y, raw_z)
 
     @property
@@ -260,16 +264,9 @@ class LSM9DS1:
         # Read the magnetometer
         self._read_bytes(_MAGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_M, 6,
                          self._BUFFER)
-        xlo = self._BUFFER[0];
-        xhi = self._BUFFER[1];
-        ylo = self._BUFFER[2];
-        yhi = self._BUFFER[3];
-        zlo = self._BUFFER[4];
-        zhi = self._BUFFER[5];
-        # Shift values to create properly formed integer (low byte first)
-        raw_x = ((xhi << 8) | xlo) & 0xFFFF
-        raw_y = ((yhi << 8) | ylo) & 0xFFFF
-        raw_z = ((zhi << 8) | zlo) & 0xFFFF
+        raw_x = ustruct.unpack_from('<h', self._BUFFER[0:2])[0]
+        raw_y = ustruct.unpack_from('<h', self._BUFFER[2:4])[0]
+        raw_z = ustruct.unpack_from('<h', self._BUFFER[4:6])[0]
         return (raw_x, raw_y, raw_z)
 
     @property
@@ -289,16 +286,9 @@ class LSM9DS1:
         # Read the gyroscope
         self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_G, 6,
                          self._BUFFER)
-        xlo = self._BUFFER[0];
-        xhi = self._BUFFER[1];
-        ylo = self._BUFFER[2];
-        yhi = self._BUFFER[3];
-        zlo = self._BUFFER[4];
-        zhi = self._BUFFER[5];
-        # Shift values to create properly formed integer (low byte first)
-        raw_x = ((xhi << 8) | xlo) & 0xFFFF
-        raw_y = ((yhi << 8) | ylo) & 0xFFFF
-        raw_z = ((zhi << 8) | zlo) & 0xFFFF
+        raw_x = ustruct.unpack_from('<h', self._BUFFER[0:2])[0]
+        raw_y = ustruct.unpack_from('<h', self._BUFFER[2:4])[0]
+        raw_z = ustruct.unpack_from('<h', self._BUFFER[4:6])[0]
         return (raw_x, raw_y, raw_z)
 
     @property
@@ -310,22 +300,26 @@ class LSM9DS1:
         return map(lambda x: x * self._gyro_dps_digit, raw)
 
     def read_temp_raw(self):
-        """Read the raw temperature sensor value and return it as a 16-bit
-        unsigned value.  If you want the temperature in nice units you probably
+        """Read the raw temperature sensor value and return it as a 12-bit
+        signed value.  If you want the temperature in nice units you probably
         want to use the temperature property!
         """
         # Read temp sensor
         self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_TEMP_OUT_L, 2,
                          self._BUFFER)
-        temp = (self._BUFFER[1] << 8) | self._BUFFER[0]
+        temp = ((self._BUFFER[1] << 8) | self._BUFFER[0]) >> 4
+        return _twos_comp(temp, 12)
+        #print('Raw temp: {0} 0x{0:04X}'.format(temp))
         return temp
 
     @property
     def temperature(self):
         """Get the temperature of the sensor in degrees Celsius."""
         # This is just a guess since the starting point (21C here) isn't documented :(
+        # See discussion from:
+        #  https://github.com/kriswiner/LSM9DS1/issues/3
         temp = self.read_temp_raw()
-        temp = 21.0 + temp/8
+        temp = 27.5 + temp/16
         return temp
 
     def _read_u8(self, sensor_type, address):
@@ -335,7 +329,7 @@ class LSM9DS1:
         # MUST be implemented by subclasses!
         raise NotImplementedError()
 
-    def _read_bytes(self, sensor_type, address, count, buffer):
+    def _read_bytes(self, sensor_type, address, count, buf):
         # Read a count number of bytes into buffer from the provided 8-bit
         # register address.  The sensor_type boolean should be _MAGTYPE when
         # talking to the magnetometer, or _XGTYPE when talking to the accel or
@@ -368,15 +362,15 @@ class LSM9DS1_I2C(LSM9DS1):
             i2c.readinto(self._BUFFER, end=1)
         return self._BUFFER[0]
 
-    def _read_bytes(self, sensor_type, address, count, buffer):
+    def _read_bytes(self, sensor_type, address, count, buf):
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
             device = self._xg_device
         with device as i2c:
-            self._BUFFER[0] = address & 0xFF
-            i2c.write(self._BUFFER, end=1, stop=False)
-            i2c.readinto(self._BUFFER, end=count)
+            buf[0] = address & 0xFF
+            i2c.write(buf, end=1, stop=False)
+            i2c.readinto(buf, end=count)
 
     def _write_u8(self, sensor_type, address, val):
         if sensor_type == _MAGTYPE:
