@@ -400,16 +400,16 @@ class LSM9DS1_SPI(LSM9DS1):
             spi.readinto(self._BUFFER, end=1)
         return self._BUFFER[0]
 
-    def _read_bytes(self, sensor_type, address, count, buffer):
+    def _read_bytes(self, sensor_type, address, count, buf):
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
             device = self._xg_device
         with device as spi:
             spi.configure(baudrate=200000, phase=0, polarity=0)
-            self._BUFFER[0] = (address | 0x80) & 0xFF
-            spi.write(self._BUFFER, end=1)
-            spi.readinto(self._BUFFER, end=count)
+            buf[0] = (address | 0x80) & 0xFF
+            spi.write(buf, end=1)
+            spi.readinto(buf, end=count)
 
     def _write_u8(self, sensor_type, address, val):
         if sensor_type == _MAGTYPE:
