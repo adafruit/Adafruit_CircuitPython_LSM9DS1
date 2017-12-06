@@ -294,7 +294,7 @@ class LSM9DS1:
     @property
     def gyroscope(self):
         """Get the gyroscope X, Y, Z axis values as a 3-tuple of
-        radians/second values.
+        degrees/second values.
         """
         raw = self.read_mag_raw()
         return map(lambda x: x * self._gyro_dps_digit, raw)
