@@ -31,14 +31,22 @@ See examples/simpletest.py for a demo of the usage.
 
 * Author(s): Tony DiCola
 """
+
+__version__ = "0.0.0-auto.0"
+__repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_LSM9DS1.git"
+
 import time
-import ustruct
+try:
+    import struct
+except ImportError:
+    import ustruct as struct
 
 import adafruit_bus_device.i2c_device as i2c_device
 import adafruit_bus_device.spi_device as spi_device
-
+from micropython import const
 
 # Internal constants and register values:
+# pylint: disable=bad-whitespace
 _LSM9DS1_ADDRESS_ACCELGYRO       = const(0x6B)
 _LSM9DS1_ADDRESS_MAG             = const(0x1E)
 _LSM9DS1_XG_ID                   = const(0b01101000)
@@ -112,6 +120,7 @@ MAGGAIN_16GAUSS              = (0b11 << 5)  # +/- 16 gauss
 GYROSCALE_245DPS             = (0b00 << 4)  # +/- 245 degrees/s rotation
 GYROSCALE_500DPS             = (0b01 << 4)  # +/- 500 degrees/s rotation
 GYROSCALE_2000DPS            = (0b11 << 4)  # +/- 2000 degrees/s rotation
+# pylint: enable=bad-whitespace
 
 
 def _twos_comp(val, bits):
@@ -119,11 +128,11 @@ def _twos_comp(val, bits):
     # length to its signed integer value and return it.
     if val & (1 << (bits - 1)) != 0:
         return val - (1 << bits)
-    else:
-        return val
+    return val
 
 
 class LSM9DS1:
+    """Driver for the LSM9DS1 accelerometer, magnetometer, gyroscope."""
 
     # Class-level buffer for reading and writing data with the sensor.
     # This reduces memory allocations but means the code is not re-entrant or
@@ -148,6 +157,9 @@ class LSM9DS1:
         # enable mag continuous
         self._write_u8(_MAGTYPE, _LSM9DS1_REGISTER_CTRL_REG3_M, 0x00)
         # Set default ranges for the various sensors
+        self._accel_mg_lsb = None
+        self._mag_mgauss_lsb = None
+        self._gyro_dps_digit = None
         self.accel_range = ACCELRANGE_2G
         self.mag_gain = MAGGAIN_4GAUSS
         self.gyro_scale = GYROSCALE_245DPS
@@ -241,9 +253,7 @@ class LSM9DS1:
         # Read the accelerometer
         self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_XL, 6,
                          self._BUFFER)
-        raw_x = ustruct.unpack_from('<h', self._BUFFER[0:2])[0]
-        raw_y = ustruct.unpack_from('<h', self._BUFFER[2:4])[0]
-        raw_z = ustruct.unpack_from('<h', self._BUFFER[4:6])[0]
+        raw_x, raw_y, raw_z = struct.unpack_from('<hhh', self._BUFFER[0:6])
         return (raw_x, raw_y, raw_z)
 
     @property
@@ -264,9 +274,7 @@ class LSM9DS1:
         # Read the magnetometer
         self._read_bytes(_MAGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_M, 6,
                          self._BUFFER)
-        raw_x = ustruct.unpack_from('<h', self._BUFFER[0:2])[0]
-        raw_y = ustruct.unpack_from('<h', self._BUFFER[2:4])[0]
-        raw_z = ustruct.unpack_from('<h', self._BUFFER[4:6])[0]
+        raw_x, raw_y, raw_z = struct.unpack_from('<hhh', self._BUFFER[0:6])
         return (raw_x, raw_y, raw_z)
 
     @property
@@ -286,9 +294,7 @@ class LSM9DS1:
         # Read the gyroscope
         self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_G, 6,
                          self._BUFFER)
-        raw_x = ustruct.unpack_from('<h', self._BUFFER[0:2])[0]
-        raw_y = ustruct.unpack_from('<h', self._BUFFER[2:4])[0]
-        raw_z = ustruct.unpack_from('<h', self._BUFFER[4:6])[0]
+        raw_x, raw_y, raw_z = struct.unpack_from('<hhh', self._BUFFER[0:6])
         return (raw_x, raw_y, raw_z)
 
     @property
@@ -343,10 +349,11 @@ class LSM9DS1:
 
 
 class LSM9DS1_I2C(LSM9DS1):
+    """Driver for the LSM9DS1 connect over I2C."""
 
     def __init__(self, i2c):
         self._mag_device = i2c_device.I2CDevice(i2c, _LSM9DS1_ADDRESS_MAG)
-        self._xg_device  = i2c_device.I2CDevice(i2c, _LSM9DS1_ADDRESS_ACCELGYRO)
+        self._xg_device = i2c_device.I2CDevice(i2c, _LSM9DS1_ADDRESS_ACCELGYRO)
         super().__init__()
 
     def _read_u8(self, sensor_type, address):
@@ -382,10 +389,11 @@ class LSM9DS1_I2C(LSM9DS1):
 
 
 class LSM9DS1_SPI(LSM9DS1):
+    """Driver for the LSM9DS1 connect over SPI."""
 
     def __init__(self, spi, xgcs, mcs):
         self._mag_device = spi_device.I2CDevice(spi, mcs)
-        self._xg_device  = spi_device.I2CDevice(spi, xgcs)
+        self._xg_device = spi_device.I2CDevice(spi, xgcs)
         super().__init__()
 
     def _read_u8(self, sensor_type, address):
