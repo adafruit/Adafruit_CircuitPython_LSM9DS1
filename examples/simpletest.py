@@ -1,9 +1,10 @@
 # Simple demo of the LSM9DS1 accelerometer, magnetometer, gyroscope.
 # Will print the acceleration, magnetometer, and gyroscope values every second.
+import time
+
 import board
 import busio
-import digitalio
-import time
+# import digitalio # Use when connected over SPI
 
 import adafruit_lsm9ds1
 
@@ -30,12 +31,9 @@ while True:
     gyro_x, gyro_y, gyro_z = sensor.gyroscope
     temp = sensor.temperature
     # Print values.
-    print('Acceleration (m/s^2): ({0:0.3f},{1:0.3f},{2:0.3f})'.format(
-          accel_x, accel_y, accel_z))
-    print('Magnetometer (gauss): ({0:0.3f},{1:0.3f},{2:0.3f})'.format(
-          mag_x, mag_y, mag_z))
-    print('Gyroscope (degrees/sec): ({0:0.3f},{1:0.3f},{2:0.3f})'.format(
-          gyro_x, gyro_y, gyro_z))
+    print('Acceleration (m/s^2): ({0:0.3f},{1:0.3f},{2:0.3f})'.format(accel_x, accel_y, accel_z))
+    print('Magnetometer (gauss): ({0:0.3f},{1:0.3f},{2:0.3f})'.format(mag_x, mag_y, mag_z))
+    print('Gyroscope (degrees/sec): ({0:0.3f},{1:0.3f},{2:0.3f})'.format(gyro_x, gyro_y, gyro_z))
     print('Temperature: {0:0.3f}C'.format(temp))
     # Delay for a second.
     time.sleep(1.0)
