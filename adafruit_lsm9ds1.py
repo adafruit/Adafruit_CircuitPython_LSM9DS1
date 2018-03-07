@@ -272,7 +272,7 @@ class LSM9DS1:
 
     @property
     def accelerometer(self):
-        """Returns the accelerometer X, Y, Z axis values as a 3-tuple of
+        """The accelerometer X, Y, Z axis values as a 3-tuple of
         m/s^2 values.
         """
         raw = self.read_accel_raw()
@@ -293,7 +293,7 @@ class LSM9DS1:
 
     @property
     def magnetometer(self):
-        """Returns the magnetometer X, Y, Z axis values as a 3-tuple of
+        """The magnetometer X, Y, Z axis values as a 3-tuple of
         gauss values.
         """
         raw = self.read_mag_raw()
@@ -313,7 +313,7 @@ class LSM9DS1:
 
     @property
     def gyroscope(self):
-        """Returns the gyroscope X, Y, Z axis values as a 3-tuple of
+        """The gyroscope X, Y, Z axis values as a 3-tuple of
         degrees/second values.
         """
         raw = self.read_mag_raw()
@@ -332,7 +332,7 @@ class LSM9DS1:
 
     @property
     def temperature(self):
-        """Returns the temperature of the sensor in degrees Celsius."""
+        """The temperature of the sensor in degrees Celsius."""
         # This is just a guess since the starting point (21C here) isn't documented :(
         # See discussion from:
         #  https://github.com/kriswiner/LSM9DS1/issues/3
