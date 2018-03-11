@@ -10,6 +10,10 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
+.. image:: https://travis-ci.org/adafruit/Adafruit_CircuitPython_LSM9DS1.svg?branch=master
+    :target: https://travis-ci.org/adafruit/Adafruit_CircuitPython_LSM9DS1
+    :alt: Build Status
+
 CircuitPython module for the LSM9DS1 accelerometer, magnetometer, gyroscope.
 
 Dependencies
