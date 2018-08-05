@@ -55,8 +55,8 @@ try:
 except ImportError:
     import ustruct as struct
 
-import adafruit_bus_device.i2c_device as i2c_device
-import adafruit_bus_device.spi_device as spi_device
+import adafruit_bus_device.i2c_device as i2c_dev
+import adafruit_bus_device.spi_device as spi_dev
 from micropython import const
 
 # Internal constants and register values:
@@ -366,8 +366,8 @@ class LSM9DS1_I2C(LSM9DS1):
     """Driver for the LSM9DS1 connect over I2C."""
 
     def __init__(self, i2c):
-        self._mag_device = i2c_device.I2CDevice(i2c, _LSM9DS1_ADDRESS_MAG)
-        self._xg_device = i2c_device.I2CDevice(i2c, _LSM9DS1_ADDRESS_ACCELGYRO)
+        self._mag_device = i2c_dev.I2CDevice(i2c, _LSM9DS1_ADDRESS_MAG)
+        self._xg_device = i2c_dev.I2CDevice(i2c, _LSM9DS1_ADDRESS_ACCELGYRO)
         super().__init__()
 
     def _read_u8(self, sensor_type, address):
@@ -404,10 +404,10 @@ class LSM9DS1_I2C(LSM9DS1):
 
 class LSM9DS1_SPI(LSM9DS1):
     """Driver for the LSM9DS1 connect over SPI."""
-
+    # pylint: disable=no-member
     def __init__(self, spi, xgcs, mcs):
-        self._mag_device = spi_device.I2CDevice(spi, mcs)
-        self._xg_device = spi_device.I2CDevice(spi, xgcs)
+        self._mag_device = spi_dev.I2CDevice(spi, mcs)
+        self._xg_device = spi_dev.I2CDevice(spi, xgcs)
         super().__init__()
 
     def _read_u8(self, sensor_type, address):
