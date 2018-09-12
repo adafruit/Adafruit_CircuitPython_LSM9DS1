@@ -13,9 +13,9 @@ sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 # values every second and print them out.
 while True:
     # Read acceleration, magnetometer, gyroscope, temperature.
-    accel_x, accel_y, accel_z = sensor.accelerometer
-    mag_x, mag_y, mag_z = sensor.magnetometer
-    gyro_x, gyro_y, gyro_z = sensor.gyroscope
+    accel_x, accel_y, accel_z = sensor.acceleration
+    mag_x, mag_y, mag_z = sensor.magnetic
+    gyro_x, gyro_y, gyro_z = sensor.gyro
     temp = sensor.temperature
     # Print values.
     print('Acceleration (m/s^2): ({0:0.3f},{1:0.3f},{2:0.3f})'.format(accel_x, accel_y, accel_z))
