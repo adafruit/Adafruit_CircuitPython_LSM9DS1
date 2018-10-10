@@ -9,6 +9,17 @@ import adafruit_lsm9ds1
 i2c = busio.I2C(board.SCL, board.SDA)
 sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
+#SPI connection:
+# from digitalio import DigitalInOut, Direction
+# spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+# csag = DigitalInOut(board.D5)
+# csag.direction = Direction.OUTPUT
+# csag.value = True
+# csm = DigitalInOut(board.D6)
+# csm.direction = Direction.OUTPUT
+# csm.value = True
+# sensor = adafruit_lsm9ds1.LSM9DS1_SPI(spi, csag, csm)
+
 # Main loop will read the acceleration, magnetometer, gyroscope, Temperature
 # values every second and print them out.
 while True:
