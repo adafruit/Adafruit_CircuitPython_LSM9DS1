@@ -131,9 +131,9 @@ MAGGAIN_4GAUSS               = (0b00 << 5)  # +/- 4 gauss
 MAGGAIN_8GAUSS               = (0b01 << 5)  # +/- 8 gauss
 MAGGAIN_12GAUSS              = (0b10 << 5)  # +/- 12 gauss
 MAGGAIN_16GAUSS              = (0b11 << 5)  # +/- 16 gauss
-GYROSCALE_245DPS             = (0b00 << 4)  # +/- 245 degrees/s rotation
-GYROSCALE_500DPS             = (0b01 << 4)  # +/- 500 degrees/s rotation
-GYROSCALE_2000DPS            = (0b11 << 4)  # +/- 2000 degrees/s rotation
+GYROSCALE_245DPS             = (0b00 << 3)  # +/- 245 degrees/s rotation
+GYROSCALE_500DPS             = (0b01 << 3)  # +/- 500 degrees/s rotation
+GYROSCALE_2000DPS            = (0b11 << 3)  # +/- 2000 degrees/s rotation
 # pylint: enable=bad-whitespace
 
 
@@ -242,13 +242,13 @@ class LSM9DS1:
           - GYROSCALE_2000DPS
         """
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG1_G)
-        return (reg & 0b00110000) & 0xFF
+        return (reg & 0b00011000) & 0xFF
 
     @gyro_scale.setter
     def gyro_scale(self, val):
         assert val in (GYROSCALE_245DPS, GYROSCALE_500DPS, GYROSCALE_2000DPS)
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG1_G)
-        reg = (reg & ~(0b00110000)) & 0xFF
+        reg = (reg & ~(0b00011000)) & 0xFF
         reg |= val
         self._write_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG1_G, reg)
         if val == GYROSCALE_245DPS:
