@@ -363,12 +363,24 @@ class LSM9DS1:
 
 
 class LSM9DS1_I2C(LSM9DS1):
-    """Driver for the LSM9DS1 connect over I2C."""
+    """Driver for the LSM9DS1 connect over I2C.
 
-    def __init__(self, i2c):
-        self._mag_device = i2c_device.I2CDevice(i2c, _LSM9DS1_ADDRESS_MAG)
-        self._xg_device = i2c_device.I2CDevice(i2c, _LSM9DS1_ADDRESS_ACCELGYRO)
-        super().__init__()
+    :param ~busio.I2C i2c: The I2C bus object used to connect to the LSM9DS1.
+
+        .. note:: This object should be shared among other driver classes that use the same I2C bus (SDA & SCL pins) to connect to different I2C devices.
+
+    :param int mag_address: A 16-bit integer that represents the i2c address of the LSM9DS1's magnetometer. Options are limited to ``0x1C`` or ``0x1E``. Defaults to ``0x1E``.
+    :param int xg_address: A 16-bit integer that represents the i2c address of the LSM9DS1's accelerometer and gyroscope. Options are limited to ``0x6A`` or ``0x6B``. Defaults to ``0x6B``.
+
+    """
+
+    def __init__(self, i2c, mag_address=_LSM9DS1_ADDRESS_MAG, xg_address=_LSM9DS1_ADDRESS_ACCELGYRO):
+        if mag_address in (0x1c, 0x1e) and xg_address in (0x6a, 0x6b):
+            self._mag_device = i2c_device.I2CDevice(i2c, mag_address)
+            self._xg_device = i2c_device.I2CDevice(i2c, xg_address)
+            super().__init__()
+        else:
+            raise ValueError('address parmeters are incorrect. Read the docs at https://circuitpython.readthedocs.io/projects/lsm9ds1/en/latest/api.html#adafruit_lsm9ds1.LSM9DS1_I2C')
 
     def _read_u8(self, sensor_type, address):
         if sensor_type == _MAGTYPE:
@@ -401,7 +413,16 @@ class LSM9DS1_I2C(LSM9DS1):
 
 
 class LSM9DS1_SPI(LSM9DS1):
-    """Driver for the LSM9DS1 connect over SPI."""
+    """Driver for the LSM9DS1 connect over SPI.
+
+    :param ~busio.SPI spi: The SPI bus object used to connect to the LSM9DS1.
+
+        .. note:: This object should be shared among other driver classes that use the same SPI bus (SCK, MISO, MOSI pins) to connect to different SPI devices.
+
+    :param ~digitalio.DigitalInOut mcs: The digital output pin connected to the LSM9DS1's CSM (Chip Select Magnetometer) pin.
+    :param ~digitalio.DigitalInOut xgcs: The digital output pin connected to the LSM9DS1's CSAG (Chip Select Accelerometer/Gyroscope) pin.
+
+    """
     # pylint: disable=no-member
     def __init__(self, spi, xgcs, mcs):
         self._mag_device = spi_device.SPIDevice(spi, mcs, baudrate=200000, phase=1, polarity=1)
