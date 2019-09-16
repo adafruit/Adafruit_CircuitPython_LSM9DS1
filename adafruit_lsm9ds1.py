@@ -370,11 +370,11 @@ class LSM9DS1_I2C(LSM9DS1):
         .. note:: This object should be shared among other driver classes that use the
             same I2C bus (SDA & SCL pins) to connect to different I2C devices.
 
-    :param int mag_address: A 16-bit integer that represents the i2c address of the
+    :param int mag_address: A 8-bit integer that represents the i2c address of the
         LSM9DS1's magnetometer. Options are limited to ``0x1C`` or ``0x1E``.
         Defaults to ``0x1E``.
 
-    :param int xg_address: A 16-bit integer that represents the i2c address of the
+    :param int xg_address: A 8-bit integer that represents the i2c address of the
         LSM9DS1's accelerometer and gyroscope. Options are limited to ``0x6A`` or ``0x6B``.
         Defaults to ``0x6B``.
 
