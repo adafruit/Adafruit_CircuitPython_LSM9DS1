@@ -367,10 +367,15 @@ class LSM9DS1_I2C(LSM9DS1):
 
     :param ~busio.I2C i2c: The I2C bus object used to connect to the LSM9DS1.
 
-        .. note:: This object should be shared among other driver classes that use the same I2C bus (SDA & SCL pins) to connect to different I2C devices.
+        .. note:: This object should be shared among other driver classes that use the
+        same I2C bus (SDA & SCL pins) to connect to different I2C devices.
 
-    :param int mag_address: A 16-bit integer that represents the i2c address of the LSM9DS1's magnetometer. Options are limited to ``0x1C`` or ``0x1E``. Defaults to ``0x1E``.
-    :param int xg_address: A 16-bit integer that represents the i2c address of the LSM9DS1's accelerometer and gyroscope. Options are limited to ``0x6A`` or ``0x6B``. Defaults to ``0x6B``.
+    :param int mag_address: A 16-bit integer that represents the i2c address of the
+    LSM9DS1's magnetometer. Options are limited to ``0x1C`` or ``0x1E``.
+    Defaults to ``0x1E``.
+    :param int xg_address: A 16-bit integer that represents the i2c address of the
+    LSM9DS1's accelerometer and gyroscope. Options are limited to ``0x6A`` or ``0x6B``.
+    Defaults to ``0x6B``.
 
     """
 
@@ -380,7 +385,8 @@ class LSM9DS1_I2C(LSM9DS1):
             self._xg_device = i2c_device.I2CDevice(i2c, xg_address)
             super().__init__()
         else:
-            raise ValueError('address parmeters are incorrect. Read the docs at https://circuitpython.readthedocs.io/projects/lsm9ds1/en/latest/api.html#adafruit_lsm9ds1.LSM9DS1_I2C')
+            raise ValueError('address parmeters are incorrect. Read the docs at '
+                             'https://circuitpython.rtfd.io/projects/lsm9ds1/en/latest/api.html#adafruit_lsm9ds1.LSM9DS1_I2C')
 
     def _read_u8(self, sensor_type, address):
         if sensor_type == _MAGTYPE:
@@ -417,10 +423,13 @@ class LSM9DS1_SPI(LSM9DS1):
 
     :param ~busio.SPI spi: The SPI bus object used to connect to the LSM9DS1.
 
-        .. note:: This object should be shared among other driver classes that use the same SPI bus (SCK, MISO, MOSI pins) to connect to different SPI devices.
+        .. note:: This object should be shared among other driver classes that use the
+        same SPI bus (SCK, MISO, MOSI pins) to connect to different SPI devices.
 
-    :param ~digitalio.DigitalInOut mcs: The digital output pin connected to the LSM9DS1's CSM (Chip Select Magnetometer) pin.
-    :param ~digitalio.DigitalInOut xgcs: The digital output pin connected to the LSM9DS1's CSAG (Chip Select Accelerometer/Gyroscope) pin.
+    :param ~digitalio.DigitalInOut mcs: The digital output pin connected to the
+    LSM9DS1's CSM (Chip Select Magnetometer) pin.
+    :param ~digitalio.DigitalInOut xgcs: The digital output pin connected to the
+    LSM9DS1's CSAG (Chip Select Accelerometer/Gyroscope) pin.
 
     """
     # pylint: disable=no-member
