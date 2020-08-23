@@ -61,7 +61,6 @@ import adafruit_bus_device.spi_device as spi_device
 from micropython import const
 
 # Internal constants and register values:
-# pylint: disable=bad-whitespace
 _LSM9DS1_ADDRESS_ACCELGYRO = const(0x6B)
 _LSM9DS1_ADDRESS_MAG = const(0x1E)
 _LSM9DS1_XG_ID = const(0b01101000)
@@ -135,7 +134,6 @@ MAGGAIN_16GAUSS = 0b11 << 5  # +/- 16 gauss
 GYROSCALE_245DPS = 0b00 << 3  # +/- 245 degrees/s rotation
 GYROSCALE_500DPS = 0b01 << 3  # +/- 500 degrees/s rotation
 GYROSCALE_2000DPS = 0b11 << 3  # +/- 2000 degrees/s rotation
-# pylint: enable=bad-whitespace
 
 
 def _twos_comp(val, bits):
