@@ -121,6 +121,7 @@ _LSM9DS1_REGISTER_INT_SRC_M = const(0x31)
 _MAGTYPE = True
 _XGTYPE = False
 _SENSORS_GRAVITY_STANDARD = 9.80665
+_SPI_AUTO_INCR = 0x40
 
 # User facing constants/module globals.
 ACCELRANGE_2G = 0b00 << 3
@@ -465,6 +466,7 @@ class LSM9DS1_SPI(LSM9DS1):
     def _read_bytes(self, sensor_type, address, count, buf):
         if sensor_type == _MAGTYPE:
             device = self._mag_device
+            address |= _SPI_AUTO_INCR
         else:
             device = self._xg_device
         with device as spi:
