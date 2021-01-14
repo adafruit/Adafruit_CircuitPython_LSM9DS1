@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
 # Simple demo of the LSM9DS1 accelerometer, magnetometer, gyroscope.
 # Will print the acceleration, magnetometer, and gyroscope values every second.
 import time
