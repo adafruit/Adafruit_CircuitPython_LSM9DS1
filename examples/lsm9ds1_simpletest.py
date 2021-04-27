@@ -5,16 +5,15 @@
 # Will print the acceleration, magnetometer, and gyroscope values every second.
 import time
 import board
-import busio
 import adafruit_lsm9ds1
 
-# I2C connection:
-i2c = busio.I2C(board.SCL, board.SDA)
+# Create sensor object, communicating over the board's default I2C bus
+i2c = board.I2C()  # uses board.SCL and board.SDA
 sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
 # SPI connection:
 # from digitalio import DigitalInOut, Direction
-# spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+# spi = board.SPI()
 # csag = DigitalInOut(board.D5)
 # csag.direction = Direction.OUTPUT
 # csag.value = True

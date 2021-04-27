@@ -24,9 +24,10 @@ Implementation Notes
 
 **Software and Dependencies:**
 
-* Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
-  https://github.com/adafruit/circuitpython/releases
-* Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
+* Adafruit CircuitPython firmware for the supported boards:
+  https://circuitpython.org/downloads
+* Adafruit's Bus Device library:
+  https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
 
 __version__ = "0.0.0-auto.0"
@@ -166,10 +167,12 @@ class LSM9DS1:
     @property
     def accel_range(self):
         """The accelerometer range.  Must be a value of:
+
         - ACCELRANGE_2G
         - ACCELRANGE_4G
         - ACCELRANGE_8G
         - ACCELRANGE_16G
+
         """
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG6_XL)
         return (reg & 0b00011000) & 0xFF
@@ -193,10 +196,12 @@ class LSM9DS1:
     @property
     def mag_gain(self):
         """The magnetometer gain.  Must be a value of:
+
         - MAGGAIN_4GAUSS
         - MAGGAIN_8GAUSS
         - MAGGAIN_12GAUSS
         - MAGGAIN_16GAUSS
+
         """
         reg = self._read_u8(_MAGTYPE, _LSM9DS1_REGISTER_CTRL_REG2_M)
         return (reg & 0b01100000) & 0xFF
@@ -220,9 +225,11 @@ class LSM9DS1:
     @property
     def gyro_scale(self):
         """The gyroscope scale.  Must be a value of:
-        - GYROSCALE_245DPS
-        - GYROSCALE_500DPS
-        - GYROSCALE_2000DPS
+
+        * GYROSCALE_245DPS
+        * GYROSCALE_500DPS
+        * GYROSCALE_2000DPS
+
         """
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG1_G)
         return (reg & 0b00011000) & 0xFF
@@ -255,7 +262,7 @@ class LSM9DS1:
     @property
     def acceleration(self):
         """The accelerometer X, Y, Z axis values as a 3-tuple of
-        m/s^2 values.
+        :math:`m/s^2` values.
         """
         raw = self.read_accel_raw()
         return map(
@@ -345,18 +352,44 @@ class LSM9DS1:
 class LSM9DS1_I2C(LSM9DS1):
     """Driver for the LSM9DS1 connect over I2C.
 
-    :param ~busio.I2C i2c: The I2C bus object used to connect to the LSM9DS1.
-
-        .. note:: This object should be shared among other driver classes that use the
-            same I2C bus (SDA & SCL pins) to connect to different I2C devices.
+    :param ~busio.I2C i2c: The I2C bus the device is connected to
 
     :param int mag_address: A 8-bit integer that represents the i2c address of the
-        LSM9DS1's magnetometer. Options are limited to ``0x1C`` or ``0x1E``.
-        Defaults to ``0x1E``.
+        LSM9DS1's magnetometer. Options are limited to :const:`0x1C` or :const:`0x1E`
+        Defaults to :const:`0x1E`.
 
     :param int xg_address: A 8-bit integer that represents the i2c address of the
-        LSM9DS1's accelerometer and gyroscope. Options are limited to ``0x6A`` or ``0x6B``.
-        Defaults to ``0x6B``.
+        LSM9DS1's accelerometer and gyroscope. Options are limited to :const:`0x6A`
+        or :const:`0x6B`. Defaults to :const:`0x6B`.
+
+
+    **Quickstart: Importing and using the device**
+
+        Here is an example of using the :class:`LSM9DS1` class.
+        First you will need to import the libraries to use the sensor
+
+        .. code-block:: python
+
+            import board
+            import adafruit_lsm9ds1
+
+        Once this is done you can define your `board.I2C` object and define your sensor object
+
+        .. code-block:: python
+
+            i2c = board.I2C()  # uses board.SCL and board.SDA
+            sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
+
+        Now you have access to the :attr:`acceleration`, :attr:`magnetic`
+        :attr:`gyro` and :attr:`temperature` attributes
+
+        .. code-block:: python
+
+            acc_x, acc_y, acc_z = sensor.acceleration
+            mag_x, mag_y, mag_z = sensor.magnetic
+            gyro_x, gyro_y, gyro_z = sensor.gyro
+            temp = sensor.temperature
+
 
     """
 
@@ -412,16 +445,41 @@ class LSM9DS1_I2C(LSM9DS1):
 class LSM9DS1_SPI(LSM9DS1):
     """Driver for the LSM9DS1 connect over SPI.
 
-    :param ~busio.SPI spi: The SPI bus object used to connect to the LSM9DS1.
-
-        .. note:: This object should be shared among other driver classes that use the
-            same SPI bus (SCK, MISO, MOSI pins) to connect to different SPI devices.
+    :param ~busio.SPI spi: The SPI bus the device is connected to
 
     :param ~digitalio.DigitalInOut mcs: The digital output pin connected to the
         LSM9DS1's CSM (Chip Select Magnetometer) pin.
 
     :param ~digitalio.DigitalInOut xgcs: The digital output pin connected to the
         LSM9DS1's CSAG (Chip Select Accelerometer/Gyroscope) pin.
+
+
+    **Quickstart: Importing and using the device**
+
+        Here is an example of using the :class:`LSM9DS1` class.
+        First you will need to import the libraries to use the sensor
+
+        .. code-block:: python
+
+            import board
+            import adafruit_lsm9ds1
+
+        Once this is done you can define your `board.SPI` object and define your sensor object
+
+        .. code-block:: python
+
+            spi = board.SPI()
+            sensor = adafruit_lsm9ds1.LSM9DS1_SPI(spi)
+
+        Now you have access to the :attr:`acceleration`, :attr:`magnetic`
+        :attr:`gyro` and :attr:`temperature` attributes
+
+        .. code-block:: python
+
+            acc_x, acc_y, acc_z = sensor.acceleration
+            mag_x, mag_y, mag_z = sensor.magnetic
+            gyro_x, gyro_y, gyro_z = sensor.gyro
+            temp = sensor.temperature
 
     """
 

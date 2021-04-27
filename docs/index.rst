@@ -23,6 +23,8 @@ Table of Contents
 .. toctree::
     :caption: Tutorials
 
+    Adafruit 9-DOF Accel/Mag/Gyro+Temp Breakout Board - LSM9DS1 Learning Guide <https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/overview>
+
 .. toctree::
     :caption: Related Products
 
