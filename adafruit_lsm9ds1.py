@@ -35,6 +35,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_LSM9DS1.git"
 
 import time
+from math import radians
 
 try:
     import struct
@@ -303,10 +304,10 @@ class LSM9DS1:
     @property
     def gyro(self):
         """The gyroscope X, Y, Z axis values as a 3-tuple of
-        degrees/second values.
+        rad/s values.
         """
         raw = self.read_gyro_raw()
-        return map(lambda x: x * self._gyro_dps_digit, raw)
+        return map(lambda x: radians(x * self._gyro_dps_digit), raw)
 
     def read_temp_raw(self):
         """Read the raw temperature sensor value and return it as a 12-bit
