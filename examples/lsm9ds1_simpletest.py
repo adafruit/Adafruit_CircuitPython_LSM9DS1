@@ -40,7 +40,7 @@ while True:
         "Magnetometer (gauss): ({0:0.3f},{1:0.3f},{2:0.3f})".format(mag_x, mag_y, mag_z)
     )
     print(
-        "Gyroscope (degrees/sec): ({0:0.3f},{1:0.3f},{2:0.3f})".format(
+        "Gyroscope (rad/sec): ({0:0.3f},{1:0.3f},{2:0.3f})".format(
             gyro_x, gyro_y, gyro_z
         )
     )
