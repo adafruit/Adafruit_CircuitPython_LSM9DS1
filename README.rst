@@ -57,6 +57,11 @@ Usage Example
 
 See examples/lsm9ds1_simpletest.py for a demo of the usage.
 
+Documentation
+=============
+
+API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/lsm9ds1/en/latest/>`_.
+
 Contributing
 ============
 
