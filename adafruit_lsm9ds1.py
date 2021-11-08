@@ -42,8 +42,8 @@ try:
 except ImportError:
     import ustruct as struct
 
-import adafruit_bus_device.i2c_device as i2c_device
-import adafruit_bus_device.spi_device as spi_device
+from adafruit_bus_device import i2c_device
+from adafruit_bus_device import spi_device
 from micropython import const
 
 # Internal constants and register values:
