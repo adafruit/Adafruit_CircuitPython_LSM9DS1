@@ -34,13 +34,9 @@ Implementation Notes
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_LSM9DS1.git"
 
+import struct
 import time
 from math import radians
-
-try:
-    import struct
-except ImportError:
-    import ustruct as struct
 
 from adafruit_bus_device import i2c_device
 from adafruit_bus_device import spi_device
