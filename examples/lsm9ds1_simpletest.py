@@ -9,6 +9,7 @@ import adafruit_lsm9ds1
 
 # Create sensor object, communicating over the board's default I2C bus
 i2c = board.I2C()  # uses board.SCL and board.SDA
+# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
 sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
 # SPI connection:
