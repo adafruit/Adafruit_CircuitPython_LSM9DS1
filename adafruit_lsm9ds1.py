@@ -42,6 +42,14 @@ from adafruit_bus_device import i2c_device
 from adafruit_bus_device import spi_device
 from micropython import const
 
+try:
+    from typing import Tuple
+    from circuitpython_typing import WriteableBuffer
+    from digitalio import DigitalInOut
+    from busio import I2C, SPI
+except ImportError:
+    pass
+
 # Internal constants and register values:
 _LSM9DS1_ADDRESS_ACCELGYRO = const(0x6B)
 _LSM9DS1_ADDRESS_MAG = const(0x1E)
@@ -119,7 +127,7 @@ GYROSCALE_500DPS = 0b01 << 3  # +/- 500 degrees/s rotation
 GYROSCALE_2000DPS = 0b11 << 3  # +/- 2000 degrees/s rotation
 
 
-def _twos_comp(val, bits):
+def _twos_comp(val: int, bits: int) -> int:
     # Convert an unsigned integer in 2's compliment form of the specified bit
     # length to its signed integer value and return it.
     if val & (1 << (bits - 1)) != 0:
@@ -135,7 +143,7 @@ class LSM9DS1:
     # thread safe!
     _BUFFER = bytearray(6)
 
-    def __init__(self):
+    def __init__(self) -> None:
         # soft reset & reboot accel/gyro
         self._write_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG8, 0x05)
         # soft reset & reboot magnetometer
@@ -163,7 +171,7 @@ class LSM9DS1:
         self.gyro_scale = GYROSCALE_245DPS
 
     @property
-    def accel_range(self):
+    def accel_range(self) -> int:
         """The accelerometer range.  Must be a value of:
 
         - ACCELRANGE_2G
@@ -176,7 +184,7 @@ class LSM9DS1:
         return (reg & 0b00011000) & 0xFF
 
     @accel_range.setter
-    def accel_range(self, val):
+    def accel_range(self, val: int) -> None:
         assert val in (ACCELRANGE_2G, ACCELRANGE_4G, ACCELRANGE_8G, ACCELRANGE_16G)
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG6_XL)
         reg = (reg & ~(0b00011000)) & 0xFF
@@ -192,7 +200,7 @@ class LSM9DS1:
             self._accel_mg_lsb = _LSM9DS1_ACCEL_MG_LSB_16G
 
     @property
-    def mag_gain(self):
+    def mag_gain(self) -> int:
         """The magnetometer gain.  Must be a value of:
 
         - MAGGAIN_4GAUSS
@@ -205,7 +213,7 @@ class LSM9DS1:
         return (reg & 0b01100000) & 0xFF
 
     @mag_gain.setter
-    def mag_gain(self, val):
+    def mag_gain(self, val: int) -> None:
         assert val in (MAGGAIN_4GAUSS, MAGGAIN_8GAUSS, MAGGAIN_12GAUSS, MAGGAIN_16GAUSS)
         reg = self._read_u8(_MAGTYPE, _LSM9DS1_REGISTER_CTRL_REG2_M)
         reg = (reg & ~(0b01100000)) & 0xFF
@@ -221,7 +229,7 @@ class LSM9DS1:
             self._mag_mgauss_lsb = _LSM9DS1_MAG_MGAUSS_16GAUSS
 
     @property
-    def gyro_scale(self):
+    def gyro_scale(self) -> int:
         """The gyroscope scale.  Must be a value of:
 
         * GYROSCALE_245DPS
@@ -233,7 +241,7 @@ class LSM9DS1:
         return (reg & 0b00011000) & 0xFF
 
     @gyro_scale.setter
-    def gyro_scale(self, val):
+    def gyro_scale(self, val: int) -> None:
         assert val in (GYROSCALE_245DPS, GYROSCALE_500DPS, GYROSCALE_2000DPS)
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG1_G)
         reg = (reg & ~(0b00011000)) & 0xFF
@@ -246,11 +254,11 @@ class LSM9DS1:
         elif val == GYROSCALE_2000DPS:
             self._gyro_dps_digit = _LSM9DS1_GYRO_DPS_DIGIT_2000DPS
 
-    def read_accel_raw(self):
+    def read_accel_raw(self) -> Tuple[int, int, int]:
         """Read the raw accelerometer sensor values and return it as a
         3-tuple of X, Y, Z axis values that are 16-bit unsigned values.  If you
         want the acceleration in nice units you probably want to use the
-        accelerometer property!
+        acceleration property!
         """
         # Read the accelerometer
         self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_XL, 6, self._BUFFER)
@@ -258,7 +266,7 @@ class LSM9DS1:
         return (raw_x, raw_y, raw_z)
 
     @property
-    def acceleration(self):
+    def acceleration(self) -> Tuple[float, float, float]:
         """The accelerometer X, Y, Z axis values as a 3-tuple of
         :math:`m/s^2` values.
         """
@@ -267,11 +275,11 @@ class LSM9DS1:
             lambda x: x * self._accel_mg_lsb / 1000.0 * _SENSORS_GRAVITY_STANDARD, raw
         )
 
-    def read_mag_raw(self):
+    def read_mag_raw(self) -> Tuple[int, int, int]:
         """Read the raw magnetometer sensor values and return it as a
         3-tuple of X, Y, Z axis values that are 16-bit unsigned values.  If you
         want the magnetometer in nice units you probably want to use the
-        magnetometer property!
+        magnetic property!
         """
         # Read the magnetometer
         self._read_bytes(_MAGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_M, 6, self._BUFFER)
@@ -279,18 +287,18 @@ class LSM9DS1:
         return (raw_x, raw_y, raw_z)
 
     @property
-    def magnetic(self):
+    def magnetic(self) -> Tuple[float, float, float]:
         """The magnetometer X, Y, Z axis values as a 3-tuple of
         gauss values.
         """
         raw = self.read_mag_raw()
         return map(lambda x: x * self._mag_mgauss_lsb / 1000.0, raw)
 
-    def read_gyro_raw(self):
+    def read_gyro_raw(self) -> Tuple[int, int, int]:
         """Read the raw gyroscope sensor values and return it as a
         3-tuple of X, Y, Z axis values that are 16-bit unsigned values.  If you
         want the gyroscope in nice units you probably want to use the
-        gyroscope property!
+        gyro property!
         """
         # Read the gyroscope
         self._read_bytes(_XGTYPE, 0x80 | _LSM9DS1_REGISTER_OUT_X_L_G, 6, self._BUFFER)
@@ -298,14 +306,14 @@ class LSM9DS1:
         return (raw_x, raw_y, raw_z)
 
     @property
-    def gyro(self):
+    def gyro(self) -> Tuple[float, float, float]:
         """The gyroscope X, Y, Z axis values as a 3-tuple of
         rad/s values.
         """
         raw = self.read_gyro_raw()
         return map(lambda x: radians(x * self._gyro_dps_digit), raw)
 
-    def read_temp_raw(self):
+    def read_temp_raw(self) -> int:
         """Read the raw temperature sensor value and return it as a 12-bit
         signed value.  If you want the temperature in nice units you probably
         want to use the temperature property!
@@ -316,7 +324,7 @@ class LSM9DS1:
         return _twos_comp(temp, 12)
 
     @property
-    def temperature(self):
+    def temperature(self) -> float:
         """The temperature of the sensor in degrees Celsius."""
         # This is just a guess since the starting point (21C here) isn't documented :(
         # See discussion from:
@@ -325,21 +333,23 @@ class LSM9DS1:
         temp = 27.5 + temp / 16
         return temp
 
-    def _read_u8(self, sensor_type, address):
+    def _read_u8(self, sensor_type: bool, address: int) -> None:
         # Read an 8-bit unsigned value from the specified 8-bit address.
         # The sensor_type boolean should be _MAGTYPE when talking to the
         # magnetometer, or _XGTYPE when talking to the accel or gyro.
         # MUST be implemented by subclasses!
         raise NotImplementedError()
 
-    def _read_bytes(self, sensor_type, address, count, buf):
+    def _read_bytes(
+        self, sensor_type: bool, address: int, count: int, buf: WriteableBuffer
+    ) -> None:
         # Read a count number of bytes into buffer from the provided 8-bit
         # register address.  The sensor_type boolean should be _MAGTYPE when
         # talking to the magnetometer, or _XGTYPE when talking to the accel or
         # gyro.  MUST be implemented by subclasses!
         raise NotImplementedError()
 
-    def _write_u8(self, sensor_type, address, val):
+    def _write_u8(self, sensor_type: bool, address: int, val: int) -> None:
         # Write an 8-bit unsigned value to the specified 8-bit address.
         # The sensor_type boolean should be _MAGTYPE when talking to the
         # magnetometer, or _XGTYPE when talking to the accel or gyro.
@@ -393,10 +403,10 @@ class LSM9DS1_I2C(LSM9DS1):
 
     def __init__(
         self,
-        i2c,
-        mag_address=_LSM9DS1_ADDRESS_MAG,
-        xg_address=_LSM9DS1_ADDRESS_ACCELGYRO,
-    ):
+        i2c: I2C,
+        mag_address: int = _LSM9DS1_ADDRESS_MAG,
+        xg_address: int = _LSM9DS1_ADDRESS_ACCELGYRO,
+    ) -> None:
         if mag_address in (0x1C, 0x1E) and xg_address in (0x6A, 0x6B):
             self._mag_device = i2c_device.I2CDevice(i2c, mag_address)
             self._xg_device = i2c_device.I2CDevice(i2c, xg_address)
@@ -408,7 +418,7 @@ class LSM9DS1_I2C(LSM9DS1):
                 "/api.html#adafruit_lsm9ds1.LSM9DS1_I2C"
             )
 
-    def _read_u8(self, sensor_type, address):
+    def _read_u8(self, sensor_type: bool, address: int) -> int:
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
@@ -420,7 +430,9 @@ class LSM9DS1_I2C(LSM9DS1):
             )
         return self._BUFFER[1]
 
-    def _read_bytes(self, sensor_type, address, count, buf):
+    def _read_bytes(
+        self, sensor_type: bool, address: int, count: int, buf: WriteableBuffer
+    ) -> None:
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
@@ -429,7 +441,7 @@ class LSM9DS1_I2C(LSM9DS1):
             buf[0] = address & 0xFF
             i2c.write_then_readinto(buf, buf, out_end=1, in_end=count)
 
-    def _write_u8(self, sensor_type, address, val):
+    def _write_u8(self, sensor_type: bool, address: int, val: int) -> None:
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
@@ -482,7 +494,7 @@ class LSM9DS1_SPI(LSM9DS1):
     """
 
     # pylint: disable=no-member
-    def __init__(self, spi, xgcs, mcs):
+    def __init__(self, spi: SPI, xgcs: DigitalInOut, mcs: DigitalInOut) -> None:
         self._mag_device = spi_device.SPIDevice(
             spi, mcs, baudrate=200000, phase=1, polarity=1
         )
@@ -491,7 +503,7 @@ class LSM9DS1_SPI(LSM9DS1):
         )
         super().__init__()
 
-    def _read_u8(self, sensor_type, address):
+    def _read_u8(self, sensor_type: bool, address: int) -> int:
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
@@ -502,7 +514,9 @@ class LSM9DS1_SPI(LSM9DS1):
             spi.readinto(self._BUFFER, end=1)
         return self._BUFFER[0]
 
-    def _read_bytes(self, sensor_type, address, count, buf):
+    def _read_bytes(
+        self, sensor_type: bool, address: int, count: int, buf: WriteableBuffer
+    ) -> None:
         if sensor_type == _MAGTYPE:
             device = self._mag_device
             address |= _SPI_AUTO_INCR
@@ -513,7 +527,7 @@ class LSM9DS1_SPI(LSM9DS1):
             spi.write(buf, end=1)
             spi.readinto(buf, end=count)
 
-    def _write_u8(self, sensor_type, address, val):
+    def _write_u8(self, sensor_type: bool, address: int, val: int) -> None:
         if sensor_type == _MAGTYPE:
             device = self._mag_device
         else:
