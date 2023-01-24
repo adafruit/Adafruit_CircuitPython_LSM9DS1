@@ -333,7 +333,7 @@ class LSM9DS1:
         temp = 27.5 + temp / 16
         return temp
 
-    def _read_u8(self, sensor_type: bool, address: int) -> None:
+    def _read_u8(self, sensor_type: bool, address: int) -> int:
         # Read an 8-bit unsigned value from the specified 8-bit address.
         # The sensor_type boolean should be _MAGTYPE when talking to the
         # magnetometer, or _XGTYPE when talking to the accel or gyro.
