@@ -38,15 +38,15 @@ import struct
 import time
 from math import radians
 
-from adafruit_bus_device import i2c_device
-from adafruit_bus_device import spi_device
+from adafruit_bus_device import i2c_device, spi_device
 from micropython import const
 
 try:
     from typing import Tuple
+
+    from busio import I2C, SPI
     from circuitpython_typing import WriteableBuffer
     from digitalio import DigitalInOut
-    from busio import I2C, SPI
 except ImportError:
     pass
 
@@ -185,7 +185,7 @@ class LSM9DS1:
 
     @accel_range.setter
     def accel_range(self, val: int) -> None:
-        assert val in (ACCELRANGE_2G, ACCELRANGE_4G, ACCELRANGE_8G, ACCELRANGE_16G)
+        assert val in {ACCELRANGE_2G, ACCELRANGE_4G, ACCELRANGE_8G, ACCELRANGE_16G}
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG6_XL)
         reg = (reg & ~(0b00011000)) & 0xFF
         reg |= val
@@ -214,7 +214,7 @@ class LSM9DS1:
 
     @mag_gain.setter
     def mag_gain(self, val: int) -> None:
-        assert val in (MAGGAIN_4GAUSS, MAGGAIN_8GAUSS, MAGGAIN_12GAUSS, MAGGAIN_16GAUSS)
+        assert val in {MAGGAIN_4GAUSS, MAGGAIN_8GAUSS, MAGGAIN_12GAUSS, MAGGAIN_16GAUSS}
         reg = self._read_u8(_MAGTYPE, _LSM9DS1_REGISTER_CTRL_REG2_M)
         reg = (reg & ~(0b01100000)) & 0xFF
         reg |= val
@@ -242,7 +242,7 @@ class LSM9DS1:
 
     @gyro_scale.setter
     def gyro_scale(self, val: int) -> None:
-        assert val in (GYROSCALE_245DPS, GYROSCALE_500DPS, GYROSCALE_2000DPS)
+        assert val in {GYROSCALE_245DPS, GYROSCALE_500DPS, GYROSCALE_2000DPS}
         reg = self._read_u8(_XGTYPE, _LSM9DS1_REGISTER_CTRL_REG1_G)
         reg = (reg & ~(0b00011000)) & 0xFF
         reg |= val
@@ -271,9 +271,7 @@ class LSM9DS1:
         :math:`m/s^2` values.
         """
         raw = self.read_accel_raw()
-        return map(
-            lambda x: x * self._accel_mg_lsb / 1000.0 * _SENSORS_GRAVITY_STANDARD, raw
-        )
+        return map(lambda x: x * self._accel_mg_lsb / 1000.0 * _SENSORS_GRAVITY_STANDARD, raw)
 
     def read_mag_raw(self) -> Tuple[int, int, int]:
         """Read the raw magnetometer sensor values and return it as a
@@ -407,7 +405,7 @@ class LSM9DS1_I2C(LSM9DS1):
         mag_address: int = _LSM9DS1_ADDRESS_MAG,
         xg_address: int = _LSM9DS1_ADDRESS_ACCELGYRO,
     ) -> None:
-        if mag_address in (0x1C, 0x1E) and xg_address in (0x6A, 0x6B):
+        if mag_address in {0x1C, 0x1E} and xg_address in {0x6A, 0x6B}:
             self._mag_device = i2c_device.I2CDevice(i2c, mag_address)
             self._xg_device = i2c_device.I2CDevice(i2c, xg_address)
             super().__init__()
@@ -425,9 +423,7 @@ class LSM9DS1_I2C(LSM9DS1):
             device = self._xg_device
         with device as i2c:
             self._BUFFER[0] = address & 0xFF
-            i2c.write_then_readinto(
-                self._BUFFER, self._BUFFER, out_end=1, in_start=1, in_end=2
-            )
+            i2c.write_then_readinto(self._BUFFER, self._BUFFER, out_end=1, in_start=1, in_end=2)
         return self._BUFFER[1]
 
     def _read_bytes(
@@ -493,14 +489,9 @@ class LSM9DS1_SPI(LSM9DS1):
 
     """
 
-    # pylint: disable=no-member
     def __init__(self, spi: SPI, xgcs: DigitalInOut, mcs: DigitalInOut) -> None:
-        self._mag_device = spi_device.SPIDevice(
-            spi, mcs, baudrate=200000, phase=1, polarity=1
-        )
-        self._xg_device = spi_device.SPIDevice(
-            spi, xgcs, baudrate=200000, phase=1, polarity=1
-        )
+        self._mag_device = spi_device.SPIDevice(spi, mcs, baudrate=200000, phase=1, polarity=1)
+        self._xg_device = spi_device.SPIDevice(spi, xgcs, baudrate=200000, phase=1, polarity=1)
         super().__init__()
 
     def _read_u8(self, sensor_type: bool, address: int) -> int:
